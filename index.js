@@ -1,4 +1,4 @@
-const CSV_URL = "https://raw.githack.com/janithwanni/tf-all-around-2019/master/News_Final.csv";
+const CSV_URL = "https://raw.githack.com/janithwanni/tf-all-around-2019/master/News_Extract.csv";
 //const CSV_URL = "News_Final.csv"
 async function app(){
 	const dataset = tf.data.csv(CSV_URL,{

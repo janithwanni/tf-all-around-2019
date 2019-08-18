@@ -1,0 +1,25 @@
+//const embeddings = await getEmbeddings(inputs,use_model);
+	//console.log("embeddings made with shape");
+	
+	//console.log(embeddings.print(true));
+	//const inputsDataset = tf.data.array(embeddings);
+	//console.log(inputsDataset);
+	// const Dataset = tf.data.zip(inputsDataset,labelsDataset);
+	// await Dataset.take(3).forEachAsync(e=>console.log(e));
+
+
+    // return await model.embed(inputs).then(embeddings => {
+	// 	// console.log(inputs);
+	// 	return new Promise((resolve,reject) => {
+	// 		resolve(embeddings.array());
+	// 	});
+	// });
+
+    // await flatdataset.take(3).forEachAsync(e=>console.log(e));
+	
+	//const inputs = flatdataset.map(values => { return values.xs;});
+	//const labels = flatdataset.map(values => { return values.ys;});
+	//console.log(inputs);
+	//const labelsDataset = tf.data.array(labels);
+
+	//const embedDataset = await flatdataset.mapAsync(value => await Promise.resolve({xs:getEmbeddings(value.xs,model),ys:value.ys}));

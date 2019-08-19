@@ -174,11 +174,15 @@ async function app() {
 	for (var i = 0; i < article_stream_length; i++) {
 		console.log("Predicting from model");
 
+		console.log("Converting to tensor1d")
 		let embed_title_arr_tensor = tf.tensor1d(embed_titles_arr[i]);
 		embed_title_arr_tensor.print(true);
+		console.log("Reshaping tensor");
 		embed_title_arr_tensor = embed_title_arr_tensor.reshape([1,batchSize,512])
 		embed_title_arr_tensor.print(true);
+		console.log("Sending tensor to model")
 		let score = our_model.predict(embed_title_arr_tensor).flatten();
+		console.log("disposing intermediate tensors");
 		embed_title_arr_tensor.dispose();
 		score.print(true);
 		score = await score.array();

@@ -17,6 +17,20 @@
 	<div class="container" style="margin-top: 20px; width:60%; margin-left: 100px;">
 		<h3>Console output</h3>
 		<pre id='log'>  </pre>
+		<h3>Training Dataset Sample</h3>
+		<div>
+			<table class="table">
+				<thead>
+					<tr>
+						<th scope="col">Title</th>
+						<th scope="col">Sentiment</th>
+						<th scope="col" id='prediction_column' style="display:none">Predicted</th>
+					</tr>
+				</thead>
+				<tbody id="trainingDataVisualizer">
+				</tbody>
+			</table>
+		</div>
 		<div id="news_prediction" style="display:none;">
 			<h2>Model is trained!</h2>
 			<div>
@@ -34,6 +48,11 @@
 			</div>
 		</div>
 		<blockquote class="blockquote">News data provided by NewsAPI.org</blockquote>
+		<blockquote class="blockquote">
+				Dataset from 
+				Nuno Moniz and LuÃ­s Torgo (2018), Multi-Source Social Feedback of Online News Feeds, CoRR, <br>
+				<a href="https://archive.ics.uci.edu/ml/datasets/abs/1801.07055">[Web Link]</a>
+		</blockquote>		
 	</div>
 </body>
 <script src="index.js"></script>

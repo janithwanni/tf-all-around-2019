@@ -1,13 +1,19 @@
 const CSV_URL = "https://raw.githack.com/janithwanni/tf-all-around-2019/master/News_Extract.csv";
 const API_KEY = "fdc7167d66b548568f9eb32bc54cbb33";
 const url = 'https://newsapi.org/v2/top-headlines?country=us&apiKey=' + API_KEY;
+
 const prediction_element = document.getElementById('news_prediction');
 const table_body_element = document.getElementById('tableBody');
+const training_data_element = document.getElementById('trainingDataVisualizer');
+const training_data_prediction_column = document.getElementById('prediction_column');
+
+const round_decimals = 3;
+const round_value = Math.pow(10,round_decimals);
 const article_stream_length = 20;
 const sample_size = 40;
 const print_size = 1;
 const number_of_layers_in_model = 2;
-const train_slice = 100;
+const train_slice = 20;
 const batchSize = 1;
 const epochs = 1;
 
@@ -48,7 +54,8 @@ async function app() {
 		name: "Plot of Sentiment Scores",
 		tab: "Data Visualization"
 	};
-	flatdataset.take(sample_size).toArray().then(slice_dataset => {
+	const sample_dataset = flatdataset.take(sample_size);
+	sample_dataset.toArray().then(slice_dataset => {
 		console.log("Converted Dataset to Array");
 		let index = -1;
 		let series1 = slice_dataset.map(value => {
@@ -69,6 +76,16 @@ async function app() {
 			yAxisDomain: [-0.5, 0.5]
 		});
 		console.log("Visualized Sentiment Scores");
+
+		console.log("Tabualising Training Data");
+		index = 0;
+		slice_dataset.map(value => {
+			index += 1;
+			const table_class = value.ys[0] >= 0 ? 'table-success': 'table-danger';
+			const sentiment = Math.round(value.ys[0] * round_value)/ round_value;
+			training_data_element.innerHTML += "<tr id='training_label_"+index+"'> <td>" + value.xs[0] + "</td>" + "<td class='"+ table_class +"'>" + sentiment + "</td>";
+		})
+		console.log("Tabualising Training Data");
 	});
 
 	//await flatdataset.take(print_size).forEachAsync(e => console.log(e));
@@ -139,6 +156,33 @@ async function app() {
 	console.log("Fitted Dataset");
 
 	console.log("Trained Dataset");
+
+	console.log("Adding Predicted Scores");
+	const sample_array = await sample_dataset.toArray();
+	console.log("Getting Sample Array");
+	index = 1;
+	
+	await Promise.all(sample_array.map(async sample_value => {
+			//console.log("Iterating values");
+			const embeddings = await use_model.embed(sample_value.xs);
+			const embeds_array = await embeddings.array();
+			console.log("Embeding sample array index= "+index);
+			//console.log(embeds_array.length,embeds_array[0].length);
+			let embeds_title_arr_tensor = tf.tensor1d(embeds_array[0]);
+			embeds_title_arr_tensor = embeds_title_arr_tensor.reshape([1,batchSize,512]);
+			console.log("reshaping sample array index= "+index);
+			let score = our_model.predict(embeds_title_arr_tensor).flatten();
+			score = await score.array();
+			console.log("predicting sample array index= "+index);
+			score = Math.round(score * round_value) / round_value;
+			const table_class = score >= 0 ? 'table-success' : 'table-danger';
+			training_data_prediction_column.style.display = 'block';
+			document.getElementById('training_label_'+index).innerHTML += "<td class ='"+table_class+"'>"+score+"</td>";	
+			index += 1;	
+	}));
+	
+	console.log("Added Predicted Scores");
+	
 	console.log("Opening prediction element");
 	prediction_element.style['display'] = 'block';
 
@@ -158,13 +202,13 @@ async function app() {
 		let title_token_arr = article.title.split("-")
 		title_token_arr = title_token_arr.slice(0, title_token_arr.length - 1);
 		let title = title_token_arr.join(" ");
-		console.log("Processing title " + title);
+		//console.log("Processing title " + title);
 		titles.push(title);
 	});
 	console.log("Embedding titles");
 	let embed_titles = await use_model.embed(titles);
 	console.log("Embedded titles");
-	embed_titles.print(true);
+	//embed_titles.print(true);
 	//console.log(await embed_titles.array());
 	console.log("Embedding Array");
 	let embed_titles_arr = await embed_titles.array();
@@ -176,7 +220,7 @@ async function app() {
 
 		console.log("Converting to tensor1d")
 		let embed_title_arr_tensor = tf.tensor1d(embed_titles_arr[i]);
-		embed_title_arr_tensor.print(true);
+		//embed_title_arr_tensor.print(true);
 		console.log("Reshaping tensor");
 		embed_title_arr_tensor = embed_title_arr_tensor.reshape([1,batchSize,512])
 		embed_title_arr_tensor.print(true);
@@ -186,14 +230,11 @@ async function app() {
 		embed_title_arr_tensor.dispose();
 		score.print(true);
 		score = await score.array();
-		score = Math.round(score * 1000) / 1000
-		console.log(score);
+		score = Math.round(score * round_value) / round_value;
+		//console.log(score);
 		console.log("Predicted from model " + score);
-		if(score < 0){
-			elem.innerHTML += "<tr> <td>" + titles[i] + "...</td>" + "<td class='table-danger'>" + score + "</td>";
-		}else{
-			elem.innerHTML += "<tr> <td>" + titles[i] + "...</td>" + "<td class='table-success'>" + score + "</td>";
-		}
+		const table_class = score >= 0 ? 'table-success' : 'table-danger';
+		elem.innerHTML += "<tr> <td>" + titles[i] + "</td>" + "<td class='"+ table_class +"'>" + score + "</td>";
 		console.log("Updated titles table for row #"+i);
 	}
 

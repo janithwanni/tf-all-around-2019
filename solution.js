@@ -31,12 +31,12 @@ async function app() {
 		configuredColumnsOnly: true
 	});
 	console.log("Loading Encoding Model");
-	//TODO: FILL THIS USING USE
+	const use_model = await use.load();
 	console.log("Loaded Encoding Model");
 
 	console.log("Features and Target");
 	console.log(await dataset.columnNames());
-	
+	//await dataset.take(print_size).forEachAsync(e => console.log(e));
 
 	console.log("Flattening Dataset");
 	const flatdataset = dataset.map(({
@@ -71,8 +71,11 @@ async function app() {
 			values: [series1],
 			series
 		}
-		//TODO: FILL THIS USING TFVIS.RENDER.SCATTERPLOT
-		
+		tfvis.render.scatterplot(scatterplot_surface, data, {
+			xLabel: "Index",
+			yLabel: "Score",
+			yAxisDomain: [-0.5, 0.5]
+		});
 		console.log("Visualized Sentiment Scores");
 
 		console.log("Tabualising Training Data");
@@ -86,21 +89,21 @@ async function app() {
 		console.log("Tabualising Training Data");
 	});
 
-	
+	//await flatdataset.take(print_size).forEachAsync(e => console.log(e));
 	const embedDataset = await flatdataset.mapAsync(value => {
 		return getEmbeddings(value, use_model);
 	});
 	console.log("Embeded Dataset");
-	
+	//await embedDataset.take(print_size).forEachAsync(e=>console.log(e));
 
 	console.log("Visualizing Embeddings with Sentiment Scores");
-	//TODO: Add this after session
+	//TODO: Add this
 	console.log("Visualized Embeddings with Sentiment Scores")
 
 	console.log("Setting batch size for dataset");
 	const batchDataset = embedDataset.take(train_slice).batch(batchSize);
 	console.log("Set batch size. NO MORE PIPELINING");
-	
+	//await batchDataset.take(print_size).forEachAsync(e=>console.log(e));
 
 
 	console.log("Creating Model");
@@ -120,7 +123,11 @@ async function app() {
 	console.log("Training Dataset");
 
 	console.log("Compiling Model");
-	//TODO: FILL THIS USING MODEL.COMPILE
+	our_model.compile({
+		optimizer: tf.train.adam(),
+		loss: tf.losses.meanSquaredError,
+		metrics: ['mse'],
+	});
 	console.log("Compiled Model");
 
 	const history_surface = {
@@ -143,7 +150,7 @@ async function app() {
 			onEpochEnd: (epoch, log) => {
 				history.push(log);
 				console.log("Epoch End " + epoch);
-				//TODO: FILL THIS USING TFVIS SHOW HISOTRY
+				tfvis.show.history(history_surface, history, ['mse', ]);
 			}
 		}
 	});
@@ -157,17 +164,17 @@ async function app() {
 	index = 1;
 
 	await Promise.all(sample_array.map(async sample_value => {
-		
+		//console.log("Iterating values");
 		const embeddings = await use_model.embed(sample_value.xs);
 		const embeds_array = await embeddings.array();
-		
-		
+		//console.log("Embeding sample array index= " + index);
+		//console.log(embeds_array.length,embeds_array[0].length);
 		let embeds_title_arr_tensor = tf.tensor1d(embeds_array[0]);
 		embeds_title_arr_tensor = embeds_title_arr_tensor.reshape([1, batchSize, 512]);
-		
+		console.log("reshaping sample array index= " + index);
 		let score = our_model.predict(embeds_title_arr_tensor).flatten();
 		score = await score.array();
-		
+		console.log("predicting sample array index= " + index);
 		score = Math.round(score * round_value) / round_value;
 		const table_class = score >= 0 ? 'table-success' : 'table-danger';
 		training_data_prediction_column.style.display = 'block';
@@ -184,10 +191,10 @@ async function app() {
 	var req = new Request(url);
 	const response = await fetch(req);
 	console.log("Request recieved");
-	
+	//console.log(response);
 	const rjson = await response.json();
 	console.log("Made JSON from response");
-	
+	//console.log(rjson);
 	const articles = rjson.articles;
 	console.log("Collected Articles")
 	let titles = [];
@@ -196,17 +203,17 @@ async function app() {
 		let title_token_arr = article.title.split("-")
 		title_token_arr = title_token_arr.slice(0, title_token_arr.length - 1);
 		let title = title_token_arr.join(" ");
-		
+		//console.log("Processing title " + title);
 		titles.push(title);
 	});
 	console.log("Embedding titles");
 	let embed_titles = await use_model.embed(titles);
 	console.log("Embedded titles");
-	
-	
+	//embed_titles.print(true);
+	//console.log(await embed_titles.array());
 	console.log("Embedding Array");
 	let embed_titles_arr = await embed_titles.array();
-	
+	//console.log(embed_titles_arr);
 	console.log("Embedded Array");
 
 	for (var i = 0; i < article_stream_length; i++) {
@@ -214,10 +221,10 @@ async function app() {
 
 		console.log("Converting to tensor1d")
 		let embed_title_arr_tensor = tf.tensor1d(embed_titles_arr[i]);
-		
+		//embed_title_arr_tensor.print(true);
 		console.log("Reshaping tensor");
 		embed_title_arr_tensor = embed_title_arr_tensor.reshape([1, batchSize, 512])
-		
+		embed_title_arr_tensor.print(true);
 		console.log("Sending tensor to model")
 		let score = our_model.predict(embed_title_arr_tensor).flatten();
 		console.log("disposing intermediate tensors");
@@ -225,7 +232,7 @@ async function app() {
 		score.print(true);
 		score = await score.array();
 		score = Math.round(score * round_value) / round_value;
-		
+		//console.log(score);
 		console.log("Predicted from model " + score);
 		const table_class = score >= 0 ? 'table-success' : 'table-danger';
 		elem.innerHTML += "<tr> <td>" + titles[i] + "</td>" + "<td class='" + table_class + "'>" + score + "</td>";

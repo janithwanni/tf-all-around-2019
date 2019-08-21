@@ -135,7 +135,8 @@ async function app() {
 		tab: "Model Performance"
 	};
 	const history = [];
-	console.log("Fitting Dataset");
+	console.log("Fitting Dataset. This may take some time, please wait...");
+
 	await our_model.fitDataset(batchDataset, {
 		epochs: epochs,
 		callbacks: {
@@ -154,6 +155,7 @@ async function app() {
 			}
 		}
 	});
+
 	console.log("Fitted Dataset");
 
 	console.log("Trained Dataset");
@@ -275,6 +277,9 @@ function createModel() {
 			} else {
 				logger.innerHTML += arguments[i] + '<br />';
 			}
+
+			// Keep new logs focussed
+			logger.scrollTop = logger.scrollHeight;
 		}
 	}
 })();

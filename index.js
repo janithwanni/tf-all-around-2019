@@ -174,7 +174,7 @@ async function app() {
 	console.log("Visualizing Predictions of validation set");
 	//TODO: Add this after session
 	console.log("Visualized Predictions of validation set");
-	
+
 	console.log("Added Predicted Scores");
 
 	console.log("Opening prediction element");

@@ -96,10 +96,6 @@ async function app() {
 	console.log("Embeded Dataset");
 	//await embedDataset.take(print_size).forEachAsync(e=>console.log(e));
 
-	console.log("Visualizing Embeddings with Sentiment Scores");
-	//TODO: Add this
-	console.log("Visualized Embeddings with Sentiment Scores")
-
 	console.log("Setting batch size for dataset");
 	const batchDataset = embedDataset.take(train_slice).batch(batchSize);
 	console.log("Set batch size. NO MORE PIPELINING");
@@ -162,7 +158,7 @@ async function app() {
 
 	console.log("Adding Predicted Scores");
 	const sample_array = await sample_dataset.toArray();
-	console.log("Getting Sample Array");
+	console.log("Getting Sample Array this may take a while");
 	index = 1;
 
 	await Promise.all(sample_array.map(async sample_value => {
@@ -184,6 +180,10 @@ async function app() {
 		index += 1;
 	}));
 
+	console.log("Visualizing Predictions of validation set");
+	//TODO: Add this after session
+	console.log("Visualized Predictions of validation set");
+	
 	console.log("Added Predicted Scores");
 
 	console.log("Opening prediction element");
